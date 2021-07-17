@@ -191,6 +191,8 @@ def fix_text(text):
 	replace_text = replace_text.replace('<', '')
 	replace_text = replace_text.replace('>', '')
 	replace_text = replace_text.replace('|', '')
+	replace_text = replace_text.replace(',', '')
+	replace_text = replace_text.replace("'", '')
 
 	return replace_text
 
