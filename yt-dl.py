@@ -7,8 +7,10 @@ import subprocess
 - Can download captions
 - Will mux the audio, video, and captions into an mkv file while deleteing the original files
 - Might add playlist support
+-Cap means captions, don't know why I didn't just name it sub
 """
 
+#Main funcition is for the menu selection and the calls for the other functions
 def main():
 	url = ''
 	url = input('Enter a YouTube url: ')
@@ -42,10 +44,11 @@ def main():
 			exit()
 
 
+#Displays the progressive video streams (mp4, audio and video together)
 def pro(yt):
 	video = yt.streams.filter(progressive=True, file_extension='mp4')
 	count = 0
-	print('Video:')
+	print('Video:' + fix_text(yt.title))
 	for x in video:
 		print(str(count) + ': ',end='')
 		print(x)
@@ -53,26 +56,27 @@ def pro(yt):
 		count+=1
 	dl = input('Select which video to download: ')
 	dl = int(dl)
-	print('Downloading...')
-	video[dl].download(filename=yt.title.replace('-',''))
+	print('Downloading ' + fix_text(yt.title))
+	video[dl].download(filename=fix_text(yt.title))
 	print('Download finished')
 
+#Displays the adaptive video streams (mp4, audio and video are seperate files, better quality)
 def adapt(yt):
-	video = yt.streams.filter(adaptive=True, file_extension='mp4')
+	video = yt.streams.filter(only_video = True, adaptive=True, file_extension='mp4')
 	audio = yt.streams.filter(only_audio=True,file_extension='mp4')
 
 	count = 0
-	print('Video:')
+	print('Video: ' + fix_text(yt.title))
 	for x in video:
 		print(str(count) + ': ',end='')
 		print(x)
 		print()
 		count+=1
-	vIndex = input('Select which video to download: ')
+	vIndex = input('Select which video to download: \n')
 	vIndex = int(vIndex)
 
 	count = 0
-	print('Audio:')
+	print('Audio: ' + fix_text(yt.title))
 	for x in audio:
 		print(str(count) + ': ',end='')
 		print(x)
@@ -80,15 +84,16 @@ def adapt(yt):
 		count+=1
 	aIndex = input('Select which Audio to download: ')
 	aIndex = int(aIndex)
-	print('Downloading Video...')
-	video[vIndex].download(filename=yt.title.replace('-',''))
+	print('Downloading ' + fix_text(yt.title) + ' video')
+	video[vIndex].download(filename=fix_text(yt.title))
 	print('Video download finished')
 	out = yt.title + ' audio'
-	out = out.replace('-' , '')
-	print('Downloading Audio...')
+	out = fix_text(out)
+	print('Downloading ' + fix_text(yt.title) + ' audio')
 	audio[aIndex].download(filename=out)
 	print('Audio download finished')
 
+#displays and downloads the captions (srt file)
 def cap(yt):
 	print('\nDownload subtitles?\n-------------------\n1. Yes\n2. No')
 	select = input('Enter Selection: ')
@@ -98,9 +103,7 @@ def cap(yt):
 		subs = yt.captions
 		name = yt.title
 		name = name + ' subs.srt'
-		name = name.replace('"','')
-		name = name.replace('-','')
-		name = name.replace("'",'')
+		name = fix_text(name)
 		print('Captions: ')
 		count = 0
 		for x in subs:
@@ -126,6 +129,7 @@ def cap(yt):
 	else:
 		cap(yt)
 
+#Uses ffmpeg and command prompt to mux the video, audio, and subs together into an mkv file
 def mux(yt,prog, cap_true):
 	input('\nPush Enter to mux (muxing will delete the original files after createing the mkv) or ctrl c to quit')
 
@@ -133,77 +137,42 @@ def mux(yt,prog, cap_true):
 	audio_name = yt.title + ' audio.mp4'
 	subs_name = yt.title + ' subs.srt'
 	output_name = yt.title +'.mkv'
-	video = ''
-	audio = ''
-	subs = ''
-	output = ''
 
+	video = fix_text(vid_name)
+	audio = fix_text(audio_name)
+	output = fix_text(output_name)
+	subs = fix_text(subs_name)
+
+	video = '"' + video + '"'
+	audio = '"' + audio + '"'
+	subs = '"' + subs + '"'
+	output = '"' + output + '"'
+
+
+	print(video)
+	print(subs)
+	print(output)
+
+#if the video is adaptive and captions were downloaded
 	if prog == False and cap_true == '1':
 		
-		for i in range(0,len(vid_name)):																		#add characters to these loops if they cause an issue
-			if vid_name[i] != '"' and vid_name[i] != "'" and vid_name[i] != '-' and vid_name[i] != ':':
-				video = video + vid_name[i]
-
-		for i in range(0,len(audio_name)):
-			if audio_name[i] != '"' and audio_name[i] != "'" and audio_name[i] != '-'and audio_name[i] != ':':
-				audio = audio + audio_name[i]
-
-		for i in range(0,len(subs_name)):
-			if subs_name[i] != '"' and subs_name[i] != "'" and subs_name[i] != '-'and subs_name[i] != ':':
-				subs = subs + subs_name[i]
-
-		for i in range(0,len(output_name)):
-			if output_name[i] != '"' and output_name[i] != "'" and output_name[i] != '-'and output_name[i] != ':':
-				output = output + output_name[i]
-
-		video = '"' + video + '"'
-		audio = '"' + audio + '"'
-		subs = '"' + subs + '"'
-		output = '"' + output + '"'
 		cmd = 'ffmpeg -i ' + video + ' -i ' + audio + ' -i ' + subs + ' -c copy ' + output
 
 		os.system(cmd)
 		delete = 'del ' + video + ' ' + audio + ' ' + subs
 		os.system(delete)
 
+#if the video is adaptive and captions were not downloaded
 	elif prog == False and cap_true == '2':
-		for i in range(0,len(vid_name)):
-			if vid_name[i] != '"' and vid_name[i] != "'" and vid_name[i] != '-' and vid_name[i] != ':':
-				video = video+vid_name[i]
-
-		for i in range(0,len(audio_name)):
-			if audio_name[i] != '"' and audio_name[i] != "'" and audio_name[i] != '-'and audio_name[i] != ':':
-				audio = audio + audio_name[i]
-
-		for i in range(0,len(output_name)):
-			if output_name[i] != '"' and output_name[i] != "'" and output_name[i] != '-'and output_name[i] != ':':
-				output = output + output_name[i]
-
-		video = '"' + video + '"'
-		audio = '"' + audio + '"'
-		output = '"' + output + '"'
 
 		cmd = 'ffmpeg -i ' + video + ' -i ' + audio +  ' -c copy ' + output
 		os.system(cmd)
 		delete = 'del ' + video + ' ' + audio
 		os.system(delete)
 
+#if the video is progressive and captions were downloaded
 	elif prog == True and cap_true == '1':
-		for i in range(0,len(vid_name)):
-			if vid_name[i] != '"' and vid_name[i] != "'" and vid_name[i] != '-' and vid_name[i] != ':':
-				video = video+vid_name[i]
 
-		for i in range(0,len(subs_name)):
-			if subs_name[i] != '"' and subs_name[i] != "'" and subs_name[i] != '-'and subs_name[i] != ':':
-				subs = subs + subs_name[i]
-
-		for i in range(0,len(output_name)):
-			if output_name[i] != '"' and output_name[i] != "'" and output_name[i] != '-'and output_name[i] != ':':
-				output = output + output_name[i]
-
-		video = '"' + video + '"'
-		subs = '"' + subs + '"'
-		output = '"' + output + '"'
 		cmd = 'ffmpeg -i ' + video + ' -i ' + subs + ' -c copy ' + output
 
 		os.system(cmd)
@@ -212,4 +181,17 @@ def mux(yt,prog, cap_true):
 
 	elif prog == True and cap_true == '2':
 		return
+
+def fix_text(text):
+	replace_text = text.replace('/', '')
+	replace_text = replace_text.replace(':', '')
+	replace_text = replace_text.replace('*', '')
+	replace_text = replace_text.replace('?', '')
+	replace_text = replace_text.replace('"', '')
+	replace_text = replace_text.replace('<', '')
+	replace_text = replace_text.replace('>', '')
+	replace_text = replace_text.replace('|', '')
+
+	return replace_text
+
 main()
