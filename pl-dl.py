@@ -1,9 +1,18 @@
 from pytube import YouTube
 from pytube import Playlist
+from pytube.cli import on_progress
 import os
 import subprocess
 
+def main():
+	while True:
+		url = ''
+		url = input('url: ')
 
+		playlist = Playlist(url)
+		pl(playlist)
+
+#adapt function shows the filesize and a progressbar while downloading
 def adapt(yt):
 	video = yt.streams.filter(only_video = True, adaptive=True, file_extension='mp4')
 	audio = yt.streams.filter(only_audio=True,file_extension='mp4')
@@ -27,15 +36,16 @@ def adapt(yt):
 		count+=1
 	aIndex = input('Select which Audio to download: ')
 	aIndex = int(aIndex)
-	print('Downloading ' + fix_text(yt.title) + ' video')
+	print('Downloading ' + fix_text(yt.title) + ' video | ' + str(convertToMegs(video[vIndex].filesize)) + 'MB')
 	video[vIndex].download(filename=fix_text(yt.title))
 	print('Video download finished')
 	out = yt.title + ' audio'
 	out = fix_text(out)
-	print('Downloading ' + fix_text(yt.title) + ' audio')
+	print('Downloading ' + fix_text(yt.title) + ' audio | ' + str(convertToMegs(audio[aIndex].filesize)) + 'MB')
 	audio[aIndex].download(filename=out)
 	print('Audio download finished')
 
+#displays and downloads the captions (srt file)
 def cap(yt):
 	print('\nDownload subtitles?\n-------------------\n1. Yes\n2. No')
 	select = input('Enter Selection: ')
@@ -71,6 +81,7 @@ def cap(yt):
 	else:
 		cap(yt)
 
+#Uses ffmpeg and command prompt to mux the video, audio, and subs together into an mkv file
 def mux(yt,prog, cap_true):
 	input('\nPush Enter to mux (muxing will delete the original files after createing the mkv) or ctrl c to quit')
 
@@ -123,6 +134,31 @@ def mux(yt,prog, cap_true):
 	elif prog == True and cap_true == '2':
 		return
 
+
+#uses a playlist object that is created in main, creates a directory for the videos and downloads to it 
+def pl(playlist):
+	p = playlist
+	title = fix_text(p.title)
+
+	try:
+		os.mkdir(title)
+	except OSError as error:
+		print('Output folder already exists')
+	os.chdir(title)
+
+	for url in p.video_urls:
+		print('\n')
+		yt = YouTube(url, on_progress_callback=on_progress)
+		adapt(yt)
+		cap_true = cap(yt)
+		mux(yt, False, cap_true)
+
+	try:
+		os.chdir('..')
+	except OSError as error:
+		print('You should not see this')
+
+#fixes filenames for the audio and video files
 def fix_text(text):
 	replace_text = text.replace('/', '')
 	replace_text = replace_text.replace(':', '')
@@ -137,27 +173,16 @@ def fix_text(text):
 
 	return replace_text
 
-def pl(playlist):
-	p = playlist
-	title = fix_text(p.title)
-	try:
-		os.mkdir(title)
-	except OSError as error:
-		print('Output folder already exists')
-	os.chdir(title)
-	for url in p.video_urls:
-		print('\n')
-		yt = YouTube(url)
-		adapt(yt)
-		cap_true = cap(yt)
-		mux(yt, False, cap_true)
-
+#conversion function
+def convertToMegs(num):
+	return round(num / 1000000, 2)
 
 def main():
-	url = ''
-	url = input('url: ')
+	while True:
+		url = ''
+		url = input('url: ')
 
-	playlist = Playlist(url)
-	pl(playlist)
+		playlist = Playlist(url)
+		pl(playlist)
 
 main()
