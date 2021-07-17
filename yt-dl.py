@@ -1,4 +1,5 @@
 from pytube import YouTube
+from pytube.cli import on_progress
 import os
 import subprocess
 """
@@ -6,7 +7,6 @@ import subprocess
 - Gives opteion to downald progressive videos or adaptive videos (video + audio, usually higher quality)
 - Can download captions
 - Will mux the audio, video, and captions into an mkv file while deleteing the original files
-- Might add playlist support
 -Cap means captions, don't know why I didn't just name it sub
 """
 
@@ -14,7 +14,7 @@ import subprocess
 def main():
 	url = ''
 	url = input('Enter a YouTube url: ')
-	yt = YouTube(url)
+	yt = YouTube(url, on_progress_callback=on_progress)
 	title = yt.title
 	print('YouTube video found - ' + title)
 	dash = '\n--------------------'
@@ -22,7 +22,7 @@ def main():
 		dash = dash + '-'
 	while True:
 		print('\nEnter Selection for ' + yt.title + dash)
-		print('1. Display Progressive video\n2. Display Adaptive Video + Audio\n3. Display all streams\n4. Enter a new url\n5. Quit')
+		print('1. Display Progressive video\n2. Display Adaptive Video + Audio (higher  quality) \n3. Display all streams\n4. Enter a new url\n5. Quit')
 		select = input('Enter: ')
 		if select == '1':
 			prog = True
@@ -43,7 +43,7 @@ def main():
 		elif select == '5':
 			exit()
 
-
+#Both the pro and adapt functions show the filesize and a progressbar while downloading
 #Displays the progressive video streams (mp4, audio and video together)
 def pro(yt):
 	video = yt.streams.filter(progressive=True, file_extension='mp4')
@@ -54,10 +54,10 @@ def pro(yt):
 		print(x)
 		print()
 		count+=1
-	dl = input('Select which video to download: ')
-	dl = int(dl)
-	print('Downloading ' + fix_text(yt.title))
-	video[dl].download(filename=fix_text(yt.title))
+	index = input('Select which video to download: ')
+	index = int(index)
+	print('Downloading ' + fix_text(yt.title) + ' | ' + str(convertToMegs(video[index].filesize)) + 'MB')
+	video[index].download(filename=fix_text(yt.title))
 	print('Download finished')
 
 #Displays the adaptive video streams (mp4, audio and video are seperate files, better quality)
@@ -84,12 +84,12 @@ def adapt(yt):
 		count+=1
 	aIndex = input('Select which Audio to download: ')
 	aIndex = int(aIndex)
-	print('Downloading ' + fix_text(yt.title) + ' video')
+	print('Downloading ' + fix_text(yt.title) + ' video | ' + str(convertToMegs(video[vIndex].filesize)) + 'MB')
 	video[vIndex].download(filename=fix_text(yt.title))
 	print('Video download finished')
 	out = yt.title + ' audio'
 	out = fix_text(out)
-	print('Downloading ' + fix_text(yt.title) + ' audio')
+	print('Downloading ' + fix_text(yt.title) + ' audio | ' + str(convertToMegs(audio[aIndex].filesize)) + 'MB')
 	audio[aIndex].download(filename=out)
 	print('Audio download finished')
 
@@ -101,7 +101,7 @@ def cap(yt):
 		return select
 	elif select == '1':
 		subs = yt.captions
-		name = yt.title
+		name = fix_text(yt.title)
 		name = name + ' subs.srt'
 		name = fix_text(name)
 		print('Captions: ')
@@ -182,6 +182,7 @@ def mux(yt,prog, cap_true):
 	elif prog == True and cap_true == '2':
 		return
 
+#fixes filenames for the audio and video files
 def fix_text(text):
 	replace_text = text.replace('/', '')
 	replace_text = replace_text.replace(':', '')
@@ -191,7 +192,15 @@ def fix_text(text):
 	replace_text = replace_text.replace('<', '')
 	replace_text = replace_text.replace('>', '')
 	replace_text = replace_text.replace('|', '')
+	replace_text = replace_text.replace(',', '')
+	replace_text = replace_text.replace("'", '')
 
 	return replace_text
+
+#conversion function 
+def convertToMegs(num):
+	return round(num / 1000000, 2)
+
+
 
 main()
