@@ -7,7 +7,6 @@ import subprocess
 - Gives opteion to downald progressive videos or adaptive videos (video + audio, usually higher quality)
 - Can download captions
 - Will mux the audio, video, and captions into an mkv file while deleteing the original files
-- Might add playlist support
 -Cap means captions, don't know why I didn't just name it sub
 """
 
@@ -102,7 +101,7 @@ def cap(yt):
 		return select
 	elif select == '1':
 		subs = yt.captions
-		name = yt.title
+		name = fix_text(yt.title)
 		name = name + ' subs.srt'
 		name = fix_text(name)
 		print('Captions: ')

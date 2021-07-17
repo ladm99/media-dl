@@ -2,58 +2,115 @@ from pytube import YouTube
 from pytube import Playlist
 from pytube.cli import on_progress
 import os
+from os import path
 import subprocess
+import _pickle as pickle
 
 def main():
 	while True:
-		url = ''
-		url = input('url: ')
 
-		playlist = Playlist(url)
-		pl(playlist)
+		if path.exists('config.pkl') == False:
+			resolution = input('Desired resolution of the videos you want to download (144p, 360p, 720p, 1080p, etc.): ')
+			x = input('Do you want to download captions [Y,N]: ')
+			if x == 'y' or x == 'Y':
+				cap = '1'
+			else:
+				cap = '2'
+			lang_code = input('Enter languge code of the captions you wish to download (en for english): ')
+
+			output = open('config.pkl', 'wb')
+			config = Config(resolution, cap, lang_code)
+			pickle.dump(config, output, -1)
+			output.close()
+		else:
+			print('\n1. Enter url\n2. Edit config\n3. Quit')
+			select = input('Enter: ')
+			if select == '1':
+				url = ''
+				url = input('url: ')
+				playlist = Playlist(url)
+				pl(playlist)
+			elif select == '2':
+				resolution = input('Desired resolution of the videos you want to download (144p, 360p, 720p, 1080p, etc.): ')
+				x = input('Do you want to download captions [Y,N]: ')
+				if x == 'y' or x == 'Y':
+					cap = '1'
+				else:
+					cap = '2'
+				lang_code = input('Enter languge code of the captions you wish to download (en for english): ')
+
+				output = open('config.pkl', 'wb')
+				config = Config(resolution, cap, lang_code)
+				pickle.dump(config, output, -1)
+				output.close()
+			elif select == '3':
+				exit()
+
+class Config(object):
+	def __init__(self, resolution, cap, lang_code):
+		self.resolution = resolution
+		self.cap = cap
+		self.lang_code = lang_code
 
 #adapt function shows the filesize and a progressbar while downloading
 def adapt(yt):
-	video = yt.streams.filter(only_video = True, adaptive=True, file_extension='mp4')
+	data = open('../config.pkl', 'rb')
+	config = pickle.load(data)
+
+	video = yt.streams.filter(resolution = config.resolution, only_video = True, adaptive=True, file_extension='mp4')
 	audio = yt.streams.filter(only_audio=True,file_extension='mp4')
 
-	count = 0
-	print('Video: ' + fix_text(yt.title))
-	for x in video:
-		print(str(count) + ': ',end='')
-		print(x)
-		print()
-		count+=1
-	vIndex = input('Select which video to download: \n')
-	vIndex = int(vIndex)
+	if len(video) != 0:
+		print('Downloading ' + fix_text(yt.title) + ' video | ' + str(convertToMegs(video[0].filesize)) + 'MB')
+		video[0].download(filename=fix_text(yt.title))		
+		print('Video download finished')
 
-	count = 0
-	print('Audio: ' + fix_text(yt.title))
-	for x in audio:
-		print(str(count) + ': ',end='')
-		print(x)
-		print()
-		count+=1
-	aIndex = input('Select which Audio to download: ')
-	aIndex = int(aIndex)
-	print('Downloading ' + fix_text(yt.title) + ' video | ' + str(convertToMegs(video[vIndex].filesize)) + 'MB')
-	video[vIndex].download(filename=fix_text(yt.title))
-	print('Video download finished')
-	out = yt.title + ' audio'
-	out = fix_text(out)
-	print('Downloading ' + fix_text(yt.title) + ' audio | ' + str(convertToMegs(audio[aIndex].filesize)) + 'MB')
-	audio[aIndex].download(filename=out)
-	print('Audio download finished')
+		print('Downloading ' + fix_text(yt.title) + ' audio | ' + str(convertToMegs(audio[0].filesize)) + 'MB')
+		audio[0].download(filename=(fix_text(yt.title) + ' audio'))
+		print('Audio download finished')
+	else:
+		print('Could not find the video in the resolution you were looking for')
+		video = yt.streams.filter(only_video = True, adaptive=True, file_extension='mp4')
+
+		count = 0
+		print('Video: ' + fix_text(yt.title))
+		for x in video:
+			print(str(count) + ': ',end='')
+			print(x)
+			print()
+			count+=1
+		vIndex = input('Select which video to download: \n')
+		vIndex = int(vIndex)
+
+		count = 0
+		print('Audio: ' + fix_text(yt.title))
+		for x in audio:
+			print(str(count) + ': ',end='')
+			print(x)
+			print()
+			count+=1
+		aIndex = input('Select which Audio to download: ')
+		aIndex = int(aIndex)
+		print('Downloading ' + fix_text(yt.title) + ' video | ' + str(convertToMegs(video[vIndex].filesize)) + 'MB')
+		video[vIndex].download(filename=fix_text(yt.title))
+		print('Video download finished')
+		out = yt.title + ' audio'
+		out = fix_text(out)
+		print('Downloading ' + fix_text(yt.title) + ' audio | ' + str(convertToMegs(audio[aIndex].filesize)) + 'MB')
+		audio[aIndex].download(filename=out)
+		print('Audio download finished')
 
 #displays and downloads the captions (srt file)
 def cap(yt):
-	print('\nDownload subtitles?\n-------------------\n1. Yes\n2. No')
-	select = input('Enter Selection: ')
+	data = open('../config.pkl', 'rb')
+	config = pickle.load(data)
+
+	select = config.cap
 	if select == '2':
 		return select
 	elif select == '1':
 		subs = yt.captions
-		name = yt.title
+		name = fix_text(yt.title)
 		name = name + ' subs.srt'
 		name = fix_text(name)
 		print('Captions: ')
@@ -64,8 +121,7 @@ def cap(yt):
 			print()
 			count+=1
 
-		code = input('Select which languge to download via the languge code (if nothing appears then just push enter, there are no captions for the video): ')
-		code = code.strip()
+		code = config.lang_code
 
 		try:
 			subs = yt.captions[code]
@@ -83,8 +139,6 @@ def cap(yt):
 
 #Uses ffmpeg and command prompt to mux the video, audio, and subs together into an mkv file
 def mux(yt,prog, cap_true):
-	input('\nPush Enter to mux (muxing will delete the original files after createing the mkv) or ctrl c to quit')
-
 	vid_name = yt.title +'.mp4'
 	audio_name = yt.title + ' audio.mp4'
 	subs_name = yt.title + ' subs.srt'
@@ -140,6 +194,7 @@ def pl(playlist):
 	p = playlist
 	title = fix_text(p.title)
 
+	print('Playlist found - ' + title)
 	try:
 		os.mkdir(title)
 	except OSError as error:
@@ -176,13 +231,5 @@ def fix_text(text):
 #conversion function
 def convertToMegs(num):
 	return round(num / 1000000, 2)
-
-def main():
-	while True:
-		url = ''
-		url = input('url: ')
-
-		playlist = Playlist(url)
-		pl(playlist)
 
 main()
