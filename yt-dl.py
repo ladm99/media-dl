@@ -22,7 +22,7 @@ def main():
 		dash = dash + '-'
 	while True:
 		print('\nEnter Selection for ' + yt.title + dash)
-		print('1. Display Progressive video\n2. Display Adaptive Video + Audio\n3. Display all streams\n4. Enter a new url\n5. Quit')
+		print('1. Display Progressive video\n2. Display Adaptive Video + Audio (higher  quality) \n3. Display all streams\n4. Enter a new url\n5. Quit')
 		select = input('Enter: ')
 		if select == '1':
 			prog = True
