@@ -1,5 +1,4 @@
 # yt-dl
-Simple python script that downloads youtube videos, audio, and captions. Also, can mux them together into an mkv.
+Simple python script that downloads youtube videos, audio, and captions. Also, can mux the video and audio files together into an mkv.
 
-In order for this to work you must install pytube with `pip install pytube`. Must also download FFmpeg and add it to your PATH.
-FFmpeg can be downloaed from here: https://ffmpeg.org/
+In order for this to work you must install pytube with `pip install pytube`. Uses `ffmpeg` to mux files.
