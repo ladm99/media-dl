@@ -6,3 +6,5 @@ pl-dl: Simple program that can download an entire playlist
 Muxing is done via ffmpeg
 
 Pytube Libary is used for downloading video, audio, and subs
+
+Windows only
