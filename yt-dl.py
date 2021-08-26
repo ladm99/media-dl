@@ -1,5 +1,6 @@
 from pytube import YouTube
 from pytube.cli import on_progress
+from os import path
 import os
 import subprocess
 """
@@ -21,6 +22,14 @@ def main():
 	for s in range(len(title)):
 		dash = dash + '-'
 	while True:
+
+		#Creates output directory
+		try:
+			os.mkdir('Output')
+		except OSError as error:
+			print()
+		os.chdir('Output')
+
 		print('\nEnter Selection for ' + yt.title + dash)
 		print('1. Display Progressive video\n2. Display Adaptive Video + Audio (higher  quality) \n3. Display all streams\n4. Enter a new url\n5. Quit')
 		select = input('Enter: ')
@@ -29,16 +38,19 @@ def main():
 			pro(yt)
 			cap_true = cap(yt)
 			mux(yt, prog, cap_true)
+			os.chdir('..')
 		elif select == '2':
 			prog = False
 			adapt(yt)
 			cap_true = cap(yt)
 			mux(yt, prog, cap_true)
+			os.chdir('..')
 		elif select == '3':
 			streams = yt.streams
 			for x in streams:
 				print(x, end='\n\n')
 		elif select == '4':
+			os.chdir('..')
 			main()
 		elif select == '5':
 			exit()
@@ -46,30 +58,32 @@ def main():
 #Both the pro and adapt functions show the filesize and a progressbar while downloading
 #Displays the progressive video streams (mp4, audio and video together)
 def pro(yt):
-	video = yt.streams.filter(progressive=True, file_extension='mp4')
+	video = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc()
 	count = 0
 	print('Video:' + fix_text(yt.title))
 	for x in video:
 		print(str(count) + ': ',end='')
-		print(x)
+		#print(x)
+		printStream(x)
 		print()
 		count+=1
 	index = input('Select which video to download: ')
 	index = int(index)
 	print('Downloading ' + fix_text(yt.title) + ' | ' + str(convertToMegs(video[index].filesize)) + 'MB')
-	video[index].download(filename=fix_text(yt.title))
+	video[index].download(filename=fix_text(yt.title) + '.mp4')
 	print('Download finished')
 
 #Displays the adaptive video streams (mp4, audio and video are seperate files, better quality)
 def adapt(yt):
-	video = yt.streams.filter(only_video = True, adaptive=True, file_extension='mp4')
-	audio = yt.streams.filter(only_audio=True,file_extension='mp4')
+	video = yt.streams.filter(only_video = True, adaptive=True, file_extension='mp4').order_by('resolution').desc()
+	audio = yt.streams.filter(only_audio=True,file_extension='mp4').order_by('abr').desc()
 
 	count = 0
 	print('Video: ' + fix_text(yt.title))
 	for x in video:
 		print(str(count) + ': ',end='')
-		print(x)
+		#print(x)
+		printStream(x)
 		print()
 		count+=1
 	vIndex = input('Select which video to download: \n')
@@ -79,15 +93,16 @@ def adapt(yt):
 	print('Audio: ' + fix_text(yt.title))
 	for x in audio:
 		print(str(count) + ': ',end='')
-		print(x)
+		#print(x)
+		printStream(x)
 		print()
 		count+=1
 	aIndex = input('Select which Audio to download: ')
 	aIndex = int(aIndex)
 	print('Downloading ' + fix_text(yt.title) + ' video | ' + str(convertToMegs(video[vIndex].filesize)) + 'MB')
-	video[vIndex].download(filename=fix_text(yt.title))
+	video[vIndex].download(filename=fix_text(yt.title) + '.mp4')
 	print('Video download finished')
-	out = yt.title + ' audio'
+	out = yt.title + ' audio' + '.mp4'
 	out = fix_text(out)
 	print('Downloading ' + fix_text(yt.title) + ' audio | ' + str(convertToMegs(audio[aIndex].filesize)) + 'MB')
 	audio[aIndex].download(filename=out)
@@ -112,12 +127,13 @@ def cap(yt):
 			print()
 			count+=1
 
-		code = input('Select which languge to download via the languge code (if nothing appears then just push enter, there are no captions for the video): ')
+		code = input('Select which languge to download via the languge code (if nothing appears then just push enter, there are no captions for the video): ').lower()
 		code = code.strip()
 
 		try:
 			subs = yt.captions[code]
 			subs = subs.generate_srt_captions()
+			#subs = subs.xml_captions
 			print(name)
 			f = open(name, 'w+', encoding='utf-8')
 			f.write(subs)
@@ -156,7 +172,7 @@ def mux(yt,prog, cap_true):
 #if the video is adaptive and captions were downloaded
 	if prog == False and cap_true == '1':
 		
-		cmd = 'ffmpeg -i ' + video + ' -i ' + audio + ' -i ' + subs + ' -c copy ' + output
+		cmd = '..\\ffmpeg -i ' + video + ' -i ' + audio + ' -i ' + subs + ' -c copy ' + output
 
 		os.system(cmd)
 		delete = 'del ' + video + ' ' + audio + ' ' + subs
@@ -165,7 +181,7 @@ def mux(yt,prog, cap_true):
 #if the video is adaptive and captions were not downloaded
 	elif prog == False and cap_true == '2':
 
-		cmd = 'ffmpeg -i ' + video + ' -i ' + audio +  ' -c copy ' + output
+		cmd = '..\\ffmpeg -i ' + video + ' -i ' + audio +  ' -c copy ' + output
 		os.system(cmd)
 		delete = 'del ' + video + ' ' + audio
 		os.system(delete)
@@ -173,7 +189,7 @@ def mux(yt,prog, cap_true):
 #if the video is progressive and captions were downloaded
 	elif prog == True and cap_true == '1':
 
-		cmd = 'ffmpeg -i ' + video + ' -i ' + subs + ' -c copy ' + output
+		cmd = '..\\ffmpeg -i ' + video + ' -i ' + subs + ' -c copy ' + output
 
 		os.system(cmd)
 		delete = 'del ' + video + ' ' + subs
@@ -201,6 +217,17 @@ def fix_text(text):
 def convertToMegs(num):
 	return round(num / 1000000, 2)
 
+def printStream(stream):
+	audio = stream.includes_audio_track
+	video = stream.includes_video_track
+	adapt = stream.is_adaptive
+	if adapt == True:
+		if video == True:
+			print(f'Type: {stream.mime_type}, Resolution: {stream.resolution}, fps: {stream.fps}, Video Codec: {stream.video_codec}, Size: {convertToMegs(stream.filesize)}MB')
+		else:
+			print(f'Type: {stream.mime_type}, Bitrate: {stream.abr}, Audio Codec: {stream.audio_codec}, Size: {convertToMegs(stream.filesize)}MB')
+	else:
+		print(f'Type: {stream.mime_type}, Resolution: {stream.resolution}, fps: {stream.fps}, Video Codec: {stream.video_codec}, Audio Codec: {stream.audio_codec}, Size: {convertToMegs(stream.filesize)}MB')
 
 
 main()
