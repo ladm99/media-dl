@@ -14,8 +14,6 @@ def main():
 		else:
 			pklPath = os.path.abspath('config.pkl')
 			ffmpegPath = os.path.abspath('ffmpeg.exe')
-			print(pklPath)
-			print(ffmpegPath)
 			print('Enter Selection\n' + '---------------')
 			print('1. Enter url\n2. Edit config\n3. Quit')
 			select = input('Enter: ')
