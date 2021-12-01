@@ -12,6 +12,10 @@ def main():
 		if path.exists('config.pkl') == False:
 			createConfig()
 		else:
+			pklPath = os.path.abspath('config.pkl')
+			ffmpegPath = os.path.abspath('ffmpeg.exe')
+			print(pklPath)
+			print(ffmpegPath)
 			print('Enter Selection\n' + '---------------')
 			print('1. Enter url\n2. Edit config\n3. Quit')
 			select = input('Enter: ')
@@ -19,7 +23,7 @@ def main():
 				url = ''
 				url = input('url: ')
 				playlist = Playlist(url)
-				pl(playlist)
+				pl(playlist, pklPath, ffmpegPath)
 			elif select == '2':
 				createConfig()
 			elif select == '3':
@@ -32,8 +36,8 @@ class Config(object):
 		self.lang_code = lang_code
 
 #adapt function shows the filesize and a progressbar while downloading
-def adapt(yt):
-	data = open('../config.pkl', 'rb')
+def adapt(yt, path):
+	data = open(path, 'rb')
 	config = pickle.load(data)
 
 	video = yt.streams.filter(resolution = config.resolution, only_video = True, adaptive=True, file_extension='mp4')
@@ -62,7 +66,6 @@ def adapt(yt):
 			count+=1
 		vIndex = input('Select which video to download: \n')
 		vIndex = int(vIndex)
-
 		count = 0
 		print('Audio: ' + fix_text(yt.title))
 		for x in audio:
@@ -82,8 +85,8 @@ def adapt(yt):
 		print('Audio download finished')
 
 #displays and downloads the captions (srt file)
-def cap(yt):
-	data = open('../config.pkl', 'rb')
+def cap(yt, path):
+	data = open(path, 'rb')
 	config = pickle.load(data)
 
 	select = config.cap
@@ -119,7 +122,7 @@ def cap(yt):
 		cap(yt)
 
 #Uses ffmpeg and command prompt to mux the video, audio, and subs together into an mkv file
-def mux(yt,prog, cap_true):
+def mux(yt,prog, cap_true, ffmpegPath):
 	vid_name = yt.title +'.mp4'
 	audio_name = yt.title + ' audio.mp4'
 	subs_name = yt.title + ' subs.srt'
@@ -143,7 +146,7 @@ def mux(yt,prog, cap_true):
 #if the video is adaptive and captions were downloaded
 	if prog == False and cap_true == '1':
 		
-		cmd = '..\\ffmpeg -i ' + video + ' -i ' + audio + ' -i ' + subs + ' -c copy ' + output
+		cmd = ffmpegPath + ' -i ' + video + ' -i ' + audio + ' -i ' + subs + ' -c copy ' + output
 
 		os.system(cmd)
 		delete = 'del ' + video + ' ' + audio + ' ' + subs
@@ -152,7 +155,7 @@ def mux(yt,prog, cap_true):
 #if the video is adaptive and captions were not downloaded
 	elif prog == False and cap_true == '2':
 
-		cmd = '..\\ffmpeg -i ' + video + ' -i ' + audio +  ' -c copy ' + output
+		cmd = ffmpegPath + ' -i ' + video + ' -i ' + audio +  ' -c copy ' + output
 		os.system(cmd)
 		delete = 'del ' + video + ' ' + audio
 		os.system(delete)
@@ -160,7 +163,7 @@ def mux(yt,prog, cap_true):
 #if the video is progressive and captions were downloaded
 	elif prog == True and cap_true == '1':
 
-		cmd = '..\\ffmpeg -i ' + video + ' -i ' + subs + ' -c copy ' + output
+		cmd = ffmpegPath + ' -i ' + video + ' -i ' + subs + ' -c copy ' + output
 
 		os.system(cmd)
 		delete = 'del ' + video + ' ' + subs
@@ -171,25 +174,33 @@ def mux(yt,prog, cap_true):
 
 
 #uses a playlist object that is created in main, creates a directory for the videos and downloads to it 
-def pl(playlist):
+def pl(playlist, pklPath, ffmpegPath):
 	p = playlist
 	title = fix_text(p.title)
 
 	print('\nPlaylist found - ' + title)
+	#Creates Directories
+	try:
+		os.mkdir('Output')
+	except OSError as error:
+		print('Output folder already exists')
+	os.chdir('Output')
+
 	try:
 		os.mkdir(title)
 	except OSError as error:
-		print('Output folder already exists')
+		print(title + ' folder already exists')
 	os.chdir(title)
-
+#downloads the videos
 	for url in p.video_urls:
 		#print('\n')
 		yt = YouTube(url, on_progress_callback=on_progress)
-		adapt(yt)
-		cap_true = cap(yt)
-		mux(yt, False, cap_true)
-
+		adapt(yt, pklPath)
+		cap_true = cap(yt, pklPath)
+		mux(yt, False, cap_true, ffmpegPath)
+#goes back to the root directory
 	try:
+		os.chdir('..')
 		os.chdir('..')
 	except OSError as error:
 		print('You should not see this')
