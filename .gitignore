@@ -3,3 +3,6 @@ ffmpeg.exe
 
 #output
 Output/*
+
+#config for pl-dl
+*.pkl
