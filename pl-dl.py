@@ -5,7 +5,7 @@ import os
 from os import path
 import subprocess
 import _pickle as pickle
-#test
+
 def main():
 	while True:
 
