@@ -28,18 +28,19 @@ def main():
 			os.mkdir('Output')
 		except OSError as error:
 			print()
-		os.chdir('Output')
 
 		print('\nEnter Selection for ' + yt.title + dash)
 		print('1. Display Progressive video\n2. Display Adaptive Video + Audio (higher  quality) \n3. Display all streams\n4. Enter a new url\n5. Quit')
 		select = input('Enter: ')
 		if select == '1':
+			os.chdir('Output')
 			prog = True
 			pro(yt)
 			cap_true = cap(yt)
 			mux(yt, prog, cap_true)
 			os.chdir('..')
 		elif select == '2':
+			os.chdir('Output')
 			prog = False
 			adapt(yt)
 			cap_true = cap(yt)
@@ -50,7 +51,6 @@ def main():
 			for x in streams:
 				print(x, end='\n\n')
 		elif select == '4':
-			os.chdir('..')
 			main()
 		elif select == '5':
 			exit()
@@ -63,7 +63,6 @@ def pro(yt):
 	print('Video:' + fix_text(yt.title))
 	for x in video:
 		print(str(count) + ': ',end='')
-		#print(x)
 		printStream(x)
 		print()
 		count+=1
@@ -82,7 +81,6 @@ def adapt(yt):
 	print('Video: ' + fix_text(yt.title))
 	for x in video:
 		print(str(count) + ': ',end='')
-		#print(x)
 		printStream(x)
 		print()
 		count+=1
@@ -93,7 +91,6 @@ def adapt(yt):
 	print('Audio: ' + fix_text(yt.title))
 	for x in audio:
 		print(str(count) + ': ',end='')
-		#print(x)
 		printStream(x)
 		print()
 		count+=1
@@ -133,7 +130,6 @@ def cap(yt):
 		try:
 			subs = yt.captions[code]
 			subs = subs.generate_srt_captions()
-			#subs = subs.xml_captions
 			print(name)
 			f = open(name, 'w+', encoding='utf-8')
 			f.write(subs)
@@ -154,18 +150,13 @@ def mux(yt,prog, cap_true):
 	subs_name = yt.title + ' subs.srt'
 	output_name = yt.title +'.mkv'
 
-	video = fix_text(vid_name)
-	audio = fix_text(audio_name)
-	output = fix_text(output_name)
-	subs = fix_text(subs_name)
-
-	video = '"' + video + '"'
-	audio = '"' + audio + '"'
-	subs = '"' + subs + '"'
-	output = '"' + output + '"'
-
-
+	video = '"' + fix_text(vid_name) + '"'
+	audio = '"' + fix_text(audio_name) + '"'
+	output = '"' + fix_text(output_name) + '"'
+	subs = '"' + fix_text(subs_name) + '"'
+	
 	print(video)
+	print(audio)
 	print(subs)
 	print(output)
 
