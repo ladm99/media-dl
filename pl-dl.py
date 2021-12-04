@@ -54,25 +54,6 @@ def adapt(yt, path):
 		print('Could not find the video in the resolution you were looking for, downlading the next highest resolution avaliable')
 		video = yt.streams.filter(only_video = True, adaptive=True, file_extension='mp4').order_by('resolution').desc()
 		#orders the video streams by resolution in descencing order so that the highest resolution is at index 0
-		
-		"""count = 0
-		print('Video: ' + fix_text(yt.title))
-		for x in video:
-			print(str(count) + ': ',end='')
-			printStream(x)
-			print()
-			count+=1
-		vIndex = input('Select which video to download: \n')
-		vIndex = int(vIndex)
-		count = 0
-		print('Audio: ' + fix_text(yt.title))
-		for x in audio:
-			print(str(count) + ': ',end='')
-			printStream(x)
-			print()
-			count+=1"
-		aIndex = input('Select which Audio to download: ')
-		aIndex = int(aIndex)"""
 		print('Downloading ' + fix_text(yt.title) + ' video | ' + str(convertToMegs(video[0].filesize)) + 'MB')
 		video[0].download(filename=fix_text(yt.title) + '.mp4')
 		print('Video download finished')
@@ -96,13 +77,7 @@ def cap(yt, path):
 		name = name + ' subs.srt'
 		name = fix_text(name)
 		print('Captions: ')
-		count = 0
-		for x in subs:
-			print(str(count) + ': ',end='')
-			print(x)
-			print()
-			count+=1
-
+		
 		code = config.lang_code
 
 		try:
