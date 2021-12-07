@@ -9,3 +9,4 @@ Output/*
 
 #debug config
 *.sublime-project
+*.sublime-workspace
