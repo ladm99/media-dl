@@ -6,3 +6,6 @@ Output/*
 
 #config for pl-dl
 *.pkl
+
+#debug config
+*.sublime-project
