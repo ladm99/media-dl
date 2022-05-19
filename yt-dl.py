@@ -1,7 +1,10 @@
-from os import path
+import yt_dlp
 import os
 import subprocess as sp
 from cmdBuilder import cmdBuilder
+from os import path
+
+
 """
 - Pulls a youtube video from a url
 - Gives opteion to downald progressive videos or adaptive videos (video + audio, usually higher quality)
@@ -12,13 +15,19 @@ from cmdBuilder import cmdBuilder
 
 #Main funcition is for the menu selection and the calls for the other functions
 def main():
-	
+	# check to see if the yt-dlp is up to date
+	os.system('yt-dlp.exe -U')
+	ydl_opts = {'quiet' : True}
 	while True:
 
 		url = ''
 		url = input('Enter a url: ')
-		title = sp.getoutput('yt-dlp.exe --print title ' + url)
-		print('YouTube video found - ' + title)
+
+		with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+			info = ydl.extract_info(url, download = False)
+			title = info.get('title', None)
+
+		print('\nYouTube video found - ' + title)
 		dash = '\n--------------------'
 		for s in range(len(title)):
 			dash = dash + '-'
