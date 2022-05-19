@@ -18,10 +18,14 @@ def main():
 	# check to see if the yt-dlp is up to date
 	os.system('yt-dlp.exe -U')
 	ydl_opts = {'quiet' : True}
+
 	while True:
 
 		url = ''
 		url = input('Enter a url: ')
+
+		# check to see if it is a crunchyroll link
+		cr = 'crunchyroll' in url
 
 		with yt_dlp.YoutubeDL(ydl_opts) as ydl:
 			info = ydl.extract_info(url, download = False)
@@ -50,9 +54,11 @@ def main():
 		subs = input('Download and embed subs (English, default is yes) [Y/N]: ').lower()
 		if subs == 'y' or subs == '':
 			builder.addOption('--embed-subs')
-			subsFormat = input('What format do you want for the subs (srt, vtt, ass, lrc) (default is srt): ').lower()
-			if subsFormat == '':
+			subsFormat = input('What format do you want for the subs (srt, vtt, ass, lrc) (default is srt, ass for crunchyroll) : ').lower()
+			if subsFormat == '' and cr == False:
 				subsFormat = 'srt'
+			elif subsFormat == '' and cr:
+				subsFormat = 'ass'
 			subsFormat = '--convert-subs "' + subsFormat + '"'
 			builder.addOption(subsFormat)
 
@@ -60,9 +66,13 @@ def main():
 		if videoFormat == '':
 			videoFormat = 'mkv'
 		videoFormat = '--remux-video "' + videoFormat + '"'
+
 		builder.addOption(videoFormat)
-		builder.addOption('-P "Output"') #outputs download to the output folder
-		# print(builder.buildCommand())
+
+		# outputs download to the output folder
+		builder.addOption('-P "Output"') 
+		# use aria2c as a downloader for maximum speed
+		builder.addOption('--downloader "aria2c"')
 		os.system(builder.buildCommand())
 
 
