@@ -7,6 +7,8 @@ Muxing is done via ffmpeg
 
 yt-dlp is being used to download video, audio, and subs
 
+aria2c is being used to increase download speeds
+
 Should work with other websites like crunchyroll, but still has not been fully tested
 
 Windows only
