@@ -1,5 +1,3 @@
-from pytube import YouTube
-from pytube.cli import on_progress
 from os import path
 import os
 import subprocess as sp
