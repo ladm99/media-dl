@@ -12,3 +12,6 @@ Output/*
 #debug config
 *.sublime-project
 *.sublime-workspace
+
+#_pycache_
+__pycache__/*
