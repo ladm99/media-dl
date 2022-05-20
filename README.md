@@ -5,6 +5,10 @@ pl-dl: Simple program that can download an entire playlist
 
 Muxing is done via ffmpeg
 
-Pytube Libary is used for downloading video, audio, and subs
+yt-dlp is being used to download video, audio, and subs
+
+aria2c is being used to increase download speeds
+
+Should work with other websites like crunchyroll, but still has not been fully tested
 
 Windows only

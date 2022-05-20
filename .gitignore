@@ -3,6 +3,10 @@ ffmpeg.exe
 
 #yt-dlp
 yt-dlp.exe
+
+#aria2c
+aria2c.exe
+
 #output
 Output/*
 
@@ -12,3 +16,6 @@ Output/*
 #debug config
 *.sublime-project
 *.sublime-workspace
+
+#_pycache_
+__pycache__/*

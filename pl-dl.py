@@ -4,13 +4,13 @@ from pytube.cli import on_progress
 import os
 from os import path
 import subprocess
-import _pickle as pickle
+from config import Config
 
 def main():
 	while True:
 
 		if path.exists('config.pkl') == False:
-			createConfig()
+			Config.createConfig()
 		else:
 			pklPath = os.path.abspath('config.pkl')
 			ffmpegPath = os.path.abspath('ffmpeg.exe')
@@ -27,11 +27,6 @@ def main():
 			elif select == '3':
 				exit()
 
-class Config(object):
-	def __init__(self, resolution, cap, lang_code):
-		self.resolution = resolution
-		self.cap = cap
-		self.lang_code = lang_code
 
 #adapt function shows the filesize and a progressbar while downloading
 def adapt(yt, path):
@@ -209,19 +204,5 @@ def printStream(stream):
 	else:
 		print(f'Type: {stream.mime_type}, Resolution: {stream.resolution}, fps: {stream.fps}, Video Codec: {stream.video_codec}, Audio Codec: {stream.audio_codec}, Size: {convertToMegs(stream.filesize)}MB')
 
-
-def createConfig():
-	resolution = input('Desired resolution of the videos you want to download (144p, 360p, 720p, 1080p, etc.): ')
-	x = input('Do you want to download captions [Y,N]: ').lower()
-	if x == 'y':
-		cap = '1'
-	else:
-		cap = '2'
-	lang_code = input('Enter languge code of the captions you wish to download (en for english): ').lower()
-
-	output = open('config.pkl', 'wb')
-	config = Config(resolution, cap, lang_code)
-	pickle.dump(config, output, -1)
-	output.close()
 
 main()
