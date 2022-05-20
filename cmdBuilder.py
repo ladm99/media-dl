@@ -14,7 +14,8 @@ class cmdBuilder(object):
 
 	def buildCommand(self):
 		out = 'yt-dlp.exe'
-
+		# aria2c will always be used, -q to make output less verbose, --progress for download progress
+		out = out + ' --downloader "aria2c" --progress ' 
 		for x in self.options:
 			out = out + x
 		out = out + ' ' +self.url
