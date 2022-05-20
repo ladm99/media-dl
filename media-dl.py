@@ -5,7 +5,6 @@ import subprocess
 import _pickle as pickle
 from config import Config
 from cmdBuilder import cmdBuilder
-from pytube import Playlist as pl
 
 def main():
 	# check to see if the yt-dlp is up to date
@@ -13,6 +12,8 @@ def main():
 	ydl_opts = {'quiet' : False}
 	while True:
 		title = ''
+		formatVideoTitle = ''
+		# check to see if config file exists
 		if path.exists('config.pkl') == False:
 			Config.createConfig()
 		else:
@@ -33,17 +34,15 @@ def main():
 				con = pickle.load(data)
 
 				# have to use pytube to get the title for playlists because it takes too long with yt-dlp
-				if playlist and cr == False:
-					p = pl(url)
-					title = p.title
-				else:
+				if playlist == False:
 					with yt_dlp.YoutubeDL(ydl_opts) as ydl:
 						info = ydl.extract_info(url, download = False)
 						title = info.get('title', None)
 						print(title)
 
 				if playlist:
-					print('\nPlaylist found - ' + title)
+					title = input('\nEnter directory name for this playlist to be downloaded to: ')
+					formatVideoTitle = input('\nDo you want the video titles to be in the format of "Directory_Name - playlist_index" [Y/N] (default is yes): ').lower()
 				else:
 					print('\nVideo found - ' + title)
 
@@ -74,10 +73,6 @@ def main():
 				videoFormat = '--remux-video "' + con.videoFormat  + '"'
 				builder.addOption(videoFormat)
 
-				# for some reason araia2c doesn't work with all youtube videos so its will only be for cr
-				if cr:
-					builder.addOption('--downloader "aria2c"')
-
 				if cr == True and playlist == True:
 					language = con.lang_code
 					language = '--extractor-args "crunchyroll:language=' + language + '"'
@@ -87,6 +82,10 @@ def main():
 				# if the url is a playlist then it will have its own directory in the output dicrectory
 				if playlist:
 					out = ' -P "Output\\' + fix_text(title) + '"'
+					if formatVideoTitle == 'y' or formatVideoTitle == '':
+						# correctly formats the video title to be in the for of directory_name - playlist_index
+						outputTemplate = ' -o "' + fix_text(title) + ' - "%(playlist_index)s.%(ext)s'
+						out = out + outputTemplate
 					builder.addOption(out)
 				else:
 					builder.addOption('-P "Output"')
