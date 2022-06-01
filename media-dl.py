@@ -9,7 +9,7 @@ from cmdBuilder import cmdBuilder
 def main():
 	# check to see if the yt-dlp is up to date
 	os.system('yt-dlp.exe -U')
-	ydl_opts = {'quiet' : False}
+	ydl_opts = {'quiet' : True}
 	while True:
 		title = ''
 		formatVideoTitle = ''
@@ -33,19 +33,15 @@ def main():
 				data = open('config.pkl', 'rb')
 				con = pickle.load(data)
 
-				# have to use pytube to get the title for playlists because it takes too long with yt-dlp
 				if playlist == False:
 					with yt_dlp.YoutubeDL(ydl_opts) as ydl:
 						info = ydl.extract_info(url, download = False)
 						title = info.get('title', None)
-						print(title)
+						print('\nVideo found - ' + title)
 
 				if playlist:
 					title = input('\nEnter directory name for this playlist to be downloaded to: ')
 					formatVideoTitle = input('\nDo you want the video titles to be in the format of "Directory_Name - playlist_index" [Y/N] (default is yes): ').lower()
-				else:
-					print('\nVideo found - ' + title)
-
 
 				# create builder object
 				builder = cmdBuilder(url, [])
@@ -61,12 +57,10 @@ def main():
 				if subs == 'y' or subs == '':
 					builder.addOption('--embed-subs')
 					subsFormat = con.subsFormat
-					if cr:
+					if cr: # if it is a crunchyroll link then ass is automatically selected because it looks better in the video
 						subsFormat = 'ass'
 					elif subsFormat == '' and cr == False:
 						subsFormat = 'srt'
-					# elif subsFormat == '' and cr:
-					# 	subsFormat = 'ass'
 					subsFormat = '--convert-subs "' + subsFormat + '"'
 					builder.addOption(subsFormat)
 
@@ -78,7 +72,6 @@ def main():
 					language = '--extractor-args "crunchyroll:language=' + language + '"'
 					builder.addOption(language)
 					
-
 				# if the url is a playlist then it will have its own directory in the output dicrectory
 				if playlist:
 					out = ' -P "Output\\' + fix_text(title) + '"'
@@ -96,19 +89,12 @@ def main():
 			elif select == '3':
 				exit()
 
-
 def fix_text(text):
-	replace_text = text.replace('/', '')
-	replace_text = replace_text.replace(':', '')
-	replace_text = replace_text.replace('*', '')
-	replace_text = replace_text.replace('?', '')
-	replace_text = replace_text.replace('"', '')
-	replace_text = replace_text.replace('<', '')
-	replace_text = replace_text.replace('>', '')
-	replace_text = replace_text.replace('|', '')
-	replace_text = replace_text.replace(',', '')
-	replace_text = replace_text.replace("'", '')
-
-	return replace_text
+	badChars = ['/', ':','*', '?', '"', '<', '>', '|', ',', "'"]
+	textList = list(text)
+	for i in range(len(textList)):
+		if textList[i] in badChars:
+			textList[i] = ''
+	return ''.join(textList)
 
 main()
