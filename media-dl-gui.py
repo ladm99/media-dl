@@ -5,6 +5,8 @@ import subprocess
 import _pickle as pickle
 from config import Config
 from cmdBuilder import cmdBuilder
+import tkinter
+import customtkinter as ctk
 
 def main():
 	# check to see if the yt-dlp is up to date
@@ -97,4 +99,19 @@ def fix_text(text):
 			textList[i] = ''
 	return ''.join(textList)
 
-main()
+# main()
+
+app = ctk.CTk()
+app.geometry('800x480')
+
+def button_function():
+	print('button pressed')
+
+URLentry = ctk.CTkEntry(master = app, placeholder_text = 'Enter Url')
+URLentry.place(width = 500, relx = 0.4, rely = 0.5, anchor = tkinter.CENTER)
+
+button = ctk.CTkButton(master = app, text = 'CTKButton', command = button_function)
+button.place(relx=0.83, rely = 0.5, 
+	anchor=tkinter.CENTER)
+
+app.mainloop()
