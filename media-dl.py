@@ -33,11 +33,11 @@ def main():
 				data = open('config.pkl', 'rb')
 				con = pickle.load(data)
 
-				if playlist == False:
-					with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-						info = ydl.extract_info(url, download = False)
-						title = info.get('title', None)
-						print('\nVideo found - ' + title)
+				# if playlist == False:
+				# 	with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+				# 		info = ydl.extract_info(url, download = False)
+				# 		title = info.get('title', None)
+				# 		print('\nVideo found - ' + title)
 
 				if playlist:
 					title = input('\nEnter directory name for this playlist to be downloaded to: ')
@@ -50,7 +50,12 @@ def main():
 				if res == '':
 					builder.addOption('-f "bv+ba/b"')
 				else:
-					res = '-f "bv*[height<=' + con.resolution + ']+ba/b[height<=' + con.resolution + '] / wv*+ba/w"'
+					# have to do this stupid if statement for cr because of how the beta works hopefully it gets fixed
+					if cr:
+						language = '[language=' + con.lang_code + ']'
+						res = '-f "bv*[height<=' + con.resolution + ']+ba/b[height<=' + con.resolution + ']'+ language +'/ wv*+ba/w' + language + '"'
+					else:
+						res = '-f "bv*[height<=' + con.resolution + ']+ba/b[height<=' + con.resolution + '] / wv*+ba/w"'
 					builder.addOption(res)
 
 				subs = con.subs
@@ -67,10 +72,14 @@ def main():
 				videoFormat = '--remux-video "' + con.videoFormat  + '"'
 				builder.addOption(videoFormat)
 
-				if cr == True and playlist == True:
+				if cr == True:
 					language = con.lang_code
 					language = '--extractor-args "crunchyroll:language=' + language + '"'
 					builder.addOption(language)
+					browser = con.browser
+					if browser != '':
+						browser = '--cookies-from-browser "' + browser + '"'
+						builder.addOption(browser)
 					
 				# if the url is a playlist then it will have its own directory in the output dicrectory
 				if playlist:
@@ -82,7 +91,7 @@ def main():
 					builder.addOption(out)
 				else:
 					builder.addOption('-P "Output"')
-
+				print(builder.buildCommand())
 				os.system(builder.buildCommand())
 			elif select == '2':
 				Config.createConfig()
