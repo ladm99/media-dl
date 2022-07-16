@@ -91,7 +91,7 @@ def main():
 					builder.addOption(out)
 				else:
 					builder.addOption('-P "Output"')
-				print(builder.buildCommand())
+				# print(builder.buildCommand())
 				os.system(builder.buildCommand())
 			elif select == '2':
 				Config.createConfig()
