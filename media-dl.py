@@ -1,5 +1,5 @@
 # TODO: add sub language option in config, cr and yt have differnt language codes
-# TODO: rewrite this because its a mess, too tightly coupled
+# TODO: rewrite this because its a mess
 
 import yt_dlp
 import os
