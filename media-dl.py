@@ -1,3 +1,6 @@
+# TODO: add sub language option in config, cr and yt have differnt language codes
+# TODO: rewrite this because its a mess, too tightly coupled
+
 import yt_dlp
 import os
 from os import path
@@ -62,6 +65,7 @@ def main():
 				if subs == 'y' or subs == '':
 					builder.addOption('--embed-subs')
 					subsFormat = con.subsFormat
+					builder.addOption('--sub-langs "en-US"') #Temp fix, will have to add this option later
 					if cr: # if it is a crunchyroll link then ass is automatically selected because it looks better in the video
 						subsFormat = 'ass'
 					elif subsFormat == '' and cr == False:
