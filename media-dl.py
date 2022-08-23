@@ -65,11 +65,12 @@ def main():
 				if subs == 'y' or subs == '':
 					builder.addOption('--embed-subs')
 					subsFormat = con.subsFormat
-					builder.addOption('--sub-langs "en-US"') #Temp fix, will have to add this option later
 					if cr: # if it is a crunchyroll link then ass is automatically selected because it looks better in the video
+						builder.addOption('--sub-langs "en-US"') #Temp fix, will have to add this option later
 						subsFormat = 'ass'
 					elif subsFormat == '' and cr == False:
 						subsFormat = 'srt'
+						builder.addOption('--sub-langs "en"') #because yt has a differnt language code
 					subsFormat = '--convert-subs "' + subsFormat + '"'
 					builder.addOption(subsFormat)
 
