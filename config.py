@@ -24,7 +24,7 @@ class Config(object):
 		if videoFormat == '':
 			videoFormat = 'mkv'
 		# lang_code = input('Enter languge code of the subtitles you wish to download (en for english): ').lower()
-		lang_code =  input('If downloading from Crunchyroll, what is your preferred audio language, only for CR beta (ja-JP is the default, en-US for English)')
+		lang_code =  input('If downloading from Crunchyroll, what is your preferred audio language (ja-JP is the default, en-US for English)')
 		if lang_code == '':
 			lang_code = 'ja-JP'
 
