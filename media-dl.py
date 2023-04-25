@@ -1,19 +1,19 @@
-# TODO: add sub language option in config, cr and yt have differnt language codes
-# TODO: rewrite this because its a mess
-
+#TODO: more tests
 import yt_dlp
+from pprint import pprint
 import os
 from os import path
-import subprocess
 import _pickle as pickle
 from config import Config
-from cmdBuilder import cmdBuilder
 
 def main():
 	# check to see if the yt-dlp is up to date
 	os.system('yt-dlp.exe -U')
-	ydl_opts = {'quiet' : True}
+	
+	output_dir = "output"
 	while True:
+		ydl_opts = {'external_downloader': 'aria2c'}
+		postprocessors = []
 		title = ''
 		formatVideoTitle = ''
 		# check to see if config file exists
@@ -21,9 +21,12 @@ def main():
 			Config.createConfig()
 		else:
 			url = ''
+			# open the config file
+			data = open('config.pkl', 'rb')
+			con = pickle.load(data)
 
 			print('\nEnter Selection\n' + '---------------')
-			print('1. Enter url\n2. Edit config\n3. Quit')
+			print('1. Enter url\n2. View config\n3. Edit config\n4. Quit')
 			select = input('Enter: ')
 			if select == '1':
 				url = input('url: ')
@@ -32,75 +35,88 @@ def main():
 				# check to see if it is a playlist or series link
 				playlist = 'playlist' in url  or 'series' in url
 
-				# open the config file
-				data = open('config.pkl', 'rb')
-				con = pickle.load(data)
-
-				# if playlist == False:
-				# 	with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-				# 		info = ydl.extract_info(url, download = False)
-				# 		title = info.get('title', None)
-				# 		print('\nVideo found - ' + title)
+				
 
 				if playlist:
 					title = input('\nEnter directory name for this playlist to be downloaded to: ')
-					formatVideoTitle = input('\nDo you want the video titles to be in the format of "Directory_Name - playlist_index" [Y/N] (default is yes): ').lower()
-
-				# create builder object
-				builder = cmdBuilder(url, [])
+					formatVideoTitle = input('\nDo you want the video titles to be in the format of "Directory_Name - playlist_index" [Y/N] (default is No): ').lower()
+					ydl_opts['ignoreerrors'] = True
 
 				res = con.resolution
 				if res == '':
-					builder.addOption('-f "bv+ba/b"')
+					ydl_opts['format'] = 'bv+ba/b'
 				else:
 					# have to do this stupid if statement for cr because of how the beta works hopefully it gets fixed
 					if cr:
-						language = '[language=' + con.lang_code + ']'
-						res = '-f "bv*[height<=' + con.resolution + ']+ba/b[height<=' + con.resolution + ']'+ language +'/ wv*+ba/w' + language + '"'
+						
+						#check to see if its a playlist
+						if playlist:
+							language = '[language=' + con.lang_code + ']'
+							ydl_opts['format'] = 'bv*[height<=' + con.resolution + ']+ba' + language + '/b[height<=' + con.resolution + ']' + language +'/ wv*+ba' + language +'/w' + language
+						else:
+							ydl_opts['format'] = 'bv*[height<=' + con.resolution + ']+ba/b[height<=' + con.resolution + '] / wv*+ba/w'
 					else:
-						res = '-f "bv*[height<=' + con.resolution + ']+ba/b[height<=' + con.resolution + '] / wv*+ba/w"'
-					builder.addOption(res)
-
+						ydl_opts['format'] = 'bv*[height<=' + con.resolution + ']+ba/b[height<=' + con.resolution + '] / wv*+ba/w'
 				subs = con.subs
 				if subs == 'y' or subs == '':
-					builder.addOption('--embed-subs')
 					subsFormat = con.subsFormat
-					if cr: # if it is a crunchyroll link then ass is automatically selected because it looks better in the video
-						builder.addOption('--sub-langs "en-US"') #Temp fix, will have to add this option later
-						subsFormat = 'ass'
-					elif subsFormat == '' and cr == False:
-						subsFormat = 'srt'
-						builder.addOption('--sub-langs "en"') #because yt has a differnt language code
-					subsFormat = '--convert-subs "' + subsFormat + '"'
-					builder.addOption(subsFormat)
 
-				videoFormat = '--remux-video "' + con.videoFormat  + '"'
-				builder.addOption(videoFormat)
+					ydl_opts['writesubtitles'] = True
+					if cr: # if it is a crunchyroll link then ass is automatically selected because it looks better in the video
+						subsFormat = 'ass'
+
+						ydl_opts['subtitleslangs'] = ['en-US']
+
+					elif subsFormat == '' and cr == False:
+						# subsFormat = 'srt'
+						ydl_opts['subtitleslangs'] = ['en']
+					else:
+						postprocessors.append(dict({'key': 'FFmpegSubtitlesConvertor', 'format' : subsFormat}))
+					
+				postprocessors.append(dict({'key': 'FFmpegVideoRemuxer', 'preferedformat' : con.videoFormat}))
+				postprocessors.append(dict({'key': 'FFmpegEmbedSubtitle'}))
 
 				if cr == True:
 					language = con.lang_code
-					language = '--extractor-args "crunchyroll:language=' + language + '"'
-					builder.addOption(language)
 					browser = con.browser
 					if browser != '':
-						browser = '--cookies-from-browser "' + browser + '"'
-						builder.addOption(browser)
+						ydl_opts['cookiesfrombrowser'] = (con.browser,)
 					
 				# if the url is a playlist then it will have its own directory in the output dicrectory
 				if playlist:
-					out = ' -P "Output\\' + fix_text(title) + '"'
-					if formatVideoTitle == 'y' or formatVideoTitle == '':
+					out = f'{output_dir}/{title}/%(title)s.%(ext)s'
+					if formatVideoTitle == 'y':
 						# correctly formats the video title to be in the for of directory_name - playlist_index
-						outputTemplate = ' -o "' + fix_text(title) + ' - "%(playlist_index)s.%(ext)s'
-						out = out + outputTemplate
-					builder.addOption(out)
+						out = f'{output_dir}/{title}/{title} - %(playlist_index)s.%(ext)s'
+					ydl_opts['outtmpl'] = out
 				else:
-					builder.addOption('-P "Output"')
-				# print(builder.buildCommand())
-				os.system(builder.buildCommand())
+					ydl_opts['outtmpl'] = f'{output_dir}/%(title)s.%(ext)s'
+				ydl_opts['postprocessors'] = postprocessors
+
+				with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+					error_code = ydl.download(url)
+				# pprint(ydl_opts)
 			elif select == '2':
-				Config.createConfig()
+				r = con.resolution
+				s = con.subs
+				l = con.lang_code
+				sf = con.subsFormat
+				b = con.browser
+
+				if r == '':
+					r = 'Highest resolution'
+				if s == '':
+					s = 'Yes'
+				if sf == '':
+					sf = 'Default format'
+				if b == '':
+					b = 'None'
+
+				print(f'\nCurrent Config\n--------------\nResolution: {r}\nSubs: {s}\nSubs Format: {sf}\nBrowser: {b}')
+
 			elif select == '3':
+				Config.createConfig()
+			elif select == '4':
 				exit()
 
 def fix_text(text):
