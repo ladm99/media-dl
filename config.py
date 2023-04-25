@@ -16,15 +16,13 @@ class Config(object):
 		subs = input('Download and embed subs (English, default is yes) [Y/N]: ').lower().strip()
 		subsFormat = ''
 		if subs == 'y' or subs == '' :
-			subsFormat = input('What format do you want for the subs (srt, vtt, ass, lrc) (default is srt, ass for crunchyroll) : ').lower().strip()
-			if subsFormat =='':
-				subsFormat = 'srt'
+			subsFormat = input('What format do you want for the subs (srt, vtt, ass, lrc) (default is whatever the original format is) : ').lower().strip()
 
 		videoFormat = input('What video format do you want (embedding subs will only work with mp4 and mkv) (default is mkv): ').lower().strip()
 		if videoFormat == '':
 			videoFormat = 'mkv'
 		# lang_code = input('Enter languge code of the subtitles you wish to download (en for english): ').lower()
-		lang_code =  input('If downloading from Crunchyroll, what is your preferred audio language (ja-JP is the default, en-US for English)')
+		lang_code =  input('If downloading from Crunchyroll, what is your preferred audio language (ja-JP is the default, en-US for English): ')
 		if lang_code == '':
 			lang_code = 'ja-JP'
 
