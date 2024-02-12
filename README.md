@@ -11,4 +11,6 @@ Muxing is done via [ffmpeg](https://ffmpeg.org/)
 
 Should work with other websites like crunchyroll, but still has not been fully tested
 
-Windows only
+Issue with chrome, when selecting browser to pull cookies from, use a browser other than chrome.
+
+Windows only for exe, the scripts themselves should work on Linux (untested)
