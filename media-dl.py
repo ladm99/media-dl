@@ -1,6 +1,5 @@
 #TODO: more tests
 import yt_dlp
-from pprint import pprint
 import os
 from os import path
 import _pickle as pickle
