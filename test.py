@@ -1,5 +1,6 @@
 #TODO: more tests
 import yt_dlp
+from pprint import pprint
 import os
 from os import path
 import _pickle as pickle
@@ -7,7 +8,7 @@ from config import Config
 
 def main():
 	# check to see if the yt-dlp is up to date
-	# os.system('yt-dlp.exe -U')
+	os.system('yt-dlp.exe -U')
 	
 	output_dir = "output"
 	while True:
@@ -127,3 +128,45 @@ def fix_text(text):
 	return ''.join(textList)
 
 main()
+
+
+def test():
+	url = 'https://www.crunchyroll.com/series/G63VM514Y/space-patrol-luluco'
+	output_dir = "output"
+
+	ydl_opts ={
+	'outtmpl': f'{output_dir}/%(title)s.%(ext)s',
+	'format': 'bv+ba[language=en-US]/b[language=en-US]',
+	'writesubtitles': True,
+	'ignoreerrors': True,
+	'verbose': True, 
+	# 'simulate': True,
+	#use en-US for CR
+	'subtitleslangs': ['en-US'],
+	'cookiesfrombrowser': ('chrome',),
+	'external_downloader': 'aria2c',
+		# "merge_output_format": "mkv"
+		 'postprocessors': [{
+		 'key': 'FFmpegSubtitlesConvertor',
+		 'format': 'srt',
+		 },
+		 {
+		 'key': 'FFmpegVideoRemuxer',
+		 'preferedformat': 'mkv'
+		 },{
+		 'key': 'FFmpegEmbedSubtitle'
+		 }]
+		 }
+
+	ydl =  yt_dlp.YoutubeDL(ydl_opts)
+
+	# info_dict = ydl.extract_info(url, download=False)
+	# print(info_dict)
+	# print('\n' + ydl.prepare_filename(info_dict))
+
+	ydl.download(url)
+	pprint(ydl_opts)
+	# Download the video and subtitle files
+	# info_dict = ydl.extract_info(url, download=True)
+
+# test()

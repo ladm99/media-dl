@@ -19,3 +19,6 @@ Output/*
 
 #_pycache_
 __pycache__/*
+
+#.idea/
+.idea/*
