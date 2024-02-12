@@ -7,7 +7,7 @@ from config import Config
 
 def main():
 	# check to see if the yt-dlp is up to date
-	os.system('yt-dlp.exe -U')
+	# os.system('yt-dlp.exe -U')
 	
 	output_dir = "output"
 	while True:
